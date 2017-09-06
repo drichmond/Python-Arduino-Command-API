@@ -8,6 +8,10 @@ setup(name='arduino-python',
       author='Tristan Hearn',
       author_email='tristanhearn@gmail.com',
       url='https://github.com/thearn/Python-Arduino-Command-API',
+      include_package_data=True,
+      package_data= {
+          '': ['sketches/prototype/prototype.ino'],
+      },
       license='MIT',
       packages=['Arduino'],
       )
