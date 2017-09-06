@@ -48,7 +48,8 @@ def build_cmd_str(cmd, args=None):
         args = '%'.join(map(str, args))
     else:
         args = ''
-    return "@{cmd}%{args}$!".format(cmd=cmd, args=args)
+    s = ("@{cmd}%{args}$!".format(cmd=cmd, args=args)).encode('ascii')
+    return s
 
 
 def find_port(baud, timeout):
@@ -89,7 +90,7 @@ def get_version(sr):
         sr.flush()
     except Exception:
         return None
-    return sr.readline().replace("\r\n", "")
+    return sr.readline().rstrip()
 
 
 class Arduino(object):
@@ -170,7 +171,7 @@ class Arduino(object):
             self.sr.flush()
         except:
             pass
-        rd = self.sr.readline().replace("\r\n", "")
+        rd = self.sr.readline().rstrip()
         try:
             return int(rd)
         except:
@@ -213,7 +214,7 @@ class Arduino(object):
             self.sr.flush()
         except:
             pass
-        rd = self.sr.readline().replace("\r\n", "")
+        rd = self.sr.readline().rstrip()
         try:
             return float(rd)
         except:
@@ -260,7 +261,7 @@ class Arduino(object):
                 self.sr.flush()
             except:
                 pass
-            rd = self.sr.readline().replace("\r\n", "")
+            rd = self.sr.readline().rstrip()
             if rd.isdigit():
                 if (int(rd) > 1):
                     durations.append(int(rd))
@@ -294,7 +295,7 @@ class Arduino(object):
             self.sr.flush()
         except:
             pass
-        rd = self.sr.readline().replace("\r\n", "")
+        rd = self.sr.readline().rstrip()
         try:
             return int(rd)
         except:
@@ -370,7 +371,7 @@ class Arduino(object):
         '''
         cmd_str = build_cmd_str("cap", (pin,))
         self.sr.write(cmd_str)
-        rd = self.sr.readline().replace("\r\n", "")
+        rd = self.sr.readline().rstrip()
         if rd.isdigit():
             return int(rd)
 
@@ -403,7 +404,7 @@ class Arduino(object):
         cmd_str = build_cmd_str("si", (dataPin, clockPin, pinOrder))
         self.sr.write(cmd_str)
         self.sr.flush()
-        rd = self.sr.readline().replace("\r\n", "")
+        rd = self.sr.readline().rstrip()
         if rd.isdigit():
             return int(rd)
 
@@ -444,7 +445,7 @@ class Servos(object):
             self.sr.write(cmd_str)
             self.sr.flush()
 
-            rd = self.sr.readline().replace("\r\n", "")
+            rd = self.sr.readline().rstrip()
             if rd:
                 break
             else:
@@ -487,7 +488,7 @@ class Servos(object):
             self.sr.flush()
         except:
             pass
-        rd = self.sr.readline().replace("\r\n", "")
+        rd = self.sr.readline().rstrip()
         try:
             angle = int(rd)
             return angle
@@ -517,7 +518,7 @@ class SoftwareSerial(object):
             self.sr.flush()
         except:
             pass
-        response = self.sr.readline().replace("\r\n", "")
+        response = self.sr.readline().rstrip()
         if response == "ss OK":
             self.connected = True
             return True
@@ -537,7 +538,7 @@ class SoftwareSerial(object):
                 self.sr.flush()
             except:
                 pass
-            response = self.sr.readline().replace("\r\n", "")
+            response = self.sr.readline().rstrip()
             if response == "ss OK":
                 return True
         else:
@@ -552,7 +553,7 @@ class SoftwareSerial(object):
             cmd_str = build_cmd_str("sr")
             self.sr.write(cmd_str)
             self.sr.flush()
-            response = self.sr.readline().replace("\r\n", "")
+            response = self.sr.readline().rstrip()
             if response:
                 return response
         else:
@@ -577,7 +578,7 @@ class EEPROM(object):
         try:
             self.sr.write(cmd_str)
             self.sr.flush()
-            response = self.sr.readline().replace("\r\n", "")
+            response = self.sr.readline().rstrip()
             return int(response)
         except:
             return 0
@@ -609,7 +610,7 @@ class EEPROM(object):
         try:
             self.sr.write(cmd_str)
             self.sr.flush()            
-            response = self.sr.readline().replace("\r\n", "")
+            response = self.sr.readline().rstrip()
             if response:
                 return int(response)
         except:

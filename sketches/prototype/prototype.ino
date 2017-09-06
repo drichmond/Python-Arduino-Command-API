@@ -91,7 +91,7 @@ uint8_t readCapacitivePin(String data) {
   *ddr  |= bitmask;
 
   //return cycles;
-  Serial.println(cycles);
+  Serial.println(String(cycles));
 }
 
 void Tone(String data){
@@ -122,7 +122,7 @@ void ToneNo(String data){
 void DigitalHandler(int mode, String data){
       int pin = Str2int(data);
     if(mode<=0){ //read
-        Serial.println(digitalRead(pin));
+        Serial.println(String(digitalRead(pin)));
     }else{
         if(pin <0){
             digitalWrite(-pin,LOW);
@@ -136,7 +136,7 @@ void DigitalHandler(int mode, String data){
 void AnalogHandler(int mode, String data){
      if(mode<=0){ //read
         int pin = Str2int(data);
-        Serial.println(analogRead(pin));
+        Serial.println(String(analogRead(pin)));
     }else{
         String sdata[2];
         split(sdata,2,data,'%');
@@ -181,7 +181,7 @@ void shiftInHandler(String data) {
     } else {
        incoming = (int)shiftIn(dataPin, clockPin, LSBFIRST);
     }
-    Serial.println(incoming);
+    Serial.println(String(incoming));
 }
 
 void SS_set(String data){
@@ -218,7 +218,7 @@ void pulseInHandler(String data){
           pinMode(pin, INPUT);
           duration = pulseIn(pin, HIGH);      
     }
-    Serial.println(duration);
+    Serial.println(String(duration));
 }
 
 void pulseInSHandler(String data){
@@ -243,7 +243,7 @@ void pulseInSHandler(String data){
           pinMode(pin, INPUT);
           duration = pulseIn(pin, HIGH);      
     }
-    Serial.println(duration);
+    Serial.println(String(duration));
 }
 
 void SV_add(String data) {
@@ -258,7 +258,7 @@ void SV_add(String data) {
             servos[pos].detach();
             servos[pos].attach(pin, min, max);
             servo_pins[pos] = pin;
-            Serial.println(pos);
+            Serial.println(String(pos));
             return;
             }
         }
@@ -269,7 +269,7 @@ void SV_add(String data) {
     else {
         servos[pos].attach(pin, min, max);
         servo_pins[pos] = pin;
-        Serial.println(pos);
+        Serial.println(String(pos));
         }
 }
 
@@ -283,7 +283,7 @@ void SV_read(String data) {
     int pos = Str2int(data);
     int angle;
     angle = servos[pos].read();
-    Serial.println(angle);
+    Serial.println(String(angle));
 }
 
 void SV_write(String data) {
@@ -303,7 +303,7 @@ void SV_write_ms(String data) {
 }
 
 void sizeEEPROM() {
-    Serial.println(E2END + 1);
+    Serial.println(String(E2END + 1));
 }
 
 void EEPROMHandler(int mode, String data) {
@@ -312,7 +312,7 @@ void EEPROMHandler(int mode, String data) {
     if (mode == 0) {  
         EEPROM.write(Str2int(sdata[0]), Str2int(sdata[1]));  
     } else {
-        Serial.println(EEPROM.read(Str2int(sdata[0])));
+        Serial.println(String(EEPROM.read(Str2int(sdata[0]))));
     }
 }
 
@@ -321,6 +321,10 @@ void SerialParser(void) {
   Serial.readBytesUntil(33,readChar,64);
   String read_ = String(readChar);
   //Serial.println(readChar);
+  for(int i =0 ; i < 64; i++){
+    readChar[i] = 0;
+  }
+
   int idx1 = read_.indexOf('%');
   int idx2 = read_.indexOf('$');
   // separate command from associated data
@@ -410,5 +414,7 @@ void setup()  {
 }
 
 void loop() {
+  if(Serial.available()){
    SerialParser();
+  }
    }
