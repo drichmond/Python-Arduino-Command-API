@@ -280,6 +280,32 @@ class Arduino(object):
             self.sr.flush()
             self.sr.close()
 
+    def readTemp(self, pin):
+        cmd_str = build_cmd_str("rt", (pin,))
+        try:
+            self.sr.write(cmd_str)
+            self.sr.flush()
+        except:
+            pass
+        rd = self.sr.readline().rstrip()
+        try:
+            return float(rd)
+        except:
+            return 0
+
+    def readHumidity(self, pin):
+        cmd_str = build_cmd_str("rh", (pin,))
+        try:
+            self.sr.write(cmd_str)
+            self.sr.flush()
+        except:
+            pass
+        rd = self.sr.readline().rstrip()
+        try:
+            return float(rd)
+        except:
+            return 0
+        
     def digitalRead(self, pin):
         """
         Returns the value of a specified
