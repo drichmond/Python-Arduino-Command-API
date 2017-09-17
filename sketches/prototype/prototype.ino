@@ -2,11 +2,13 @@
 #include <Wire.h>
 #include <Servo.h>
 #include <EEPROM.h>
+#include <dht.h>
 
 SoftwareSerial *sserial = NULL;
 Servo servos[8];
 int servo_pins[] = {0, 0, 0, 0, 0, 0, 0, 0};
 boolean connected = false;
+dht htsensor = dht();
 
 int Str2int (String Str_value)
 {
@@ -184,7 +186,7 @@ void shiftInHandler(String data) {
 	Serial.println(String(incoming));
 }
 
-void SS_set(String data){
+void softwareSerialSet(String data){
 	if(sserial)
 		delete sserial;
 	String sdata[3];
@@ -197,16 +199,27 @@ void SS_set(String data){
 	Serial.println("ss OK");
 }
 
-void SS_write(String data) {
+void softwareSerialWrite(String data) {
 	int len = data.length()+1;
 	char buffer[len];
 	data.toCharArray(buffer,len);
 	Serial.println("ss OK");
 	sserial->write(buffer); 
 }
-void SS_read(String data) {
+void softwareSerialRead(String data) {
 	char c = sserial->read(); 
 	Serial.println(c);
+}
+
+
+void readTemp(String data) {
+	htsensor.read11(Str2int(data));
+	Serial.println(htsensor.temperature);
+}
+
+void readHumidity(String data) {
+	htsensor.read11(Str2int(data));
+	Serial.println(htsensor.humidity);
 }
 
 void pulseInHandler(String data){
@@ -247,7 +260,7 @@ void pulseInSHandler(String data){
 	Serial.println(String(duration));
 }
 
-void SV_add(String data) {
+void servoAdd(String data) {
 	String sdata[3];
 	split(sdata,3,data,'%');
 	int pin = Str2int(sdata[0]);
@@ -274,20 +287,20 @@ void SV_add(String data) {
         }
 }
 
-void SV_remove(String data) {
+void servoRemove(String data) {
 	int pos = Str2int(data);
 	servos[pos].detach();
 	servo_pins[pos] = 0;
 }
 
-void SV_read(String data) {
+void servoRead(String data) {
 	int pos = Str2int(data);
 	int angle;
 	angle = servos[pos].read();
 	Serial.println(String(angle));
 }
 
-void SV_write(String data) {
+void servoWrite(String data) {
 	String sdata[2];
 	split(sdata,2,data,'%');
 	int pos = Str2int(sdata[0]);
@@ -295,7 +308,7 @@ void SV_write(String data) {
 	servos[pos].write(angle);
 }
 
-void SV_write_ms(String data) {
+void servoWriteMs(String data) {
 	String sdata[2];
 	split(sdata,2,data,'%');
 	int pos = Str2int(sdata[0]);
@@ -320,17 +333,18 @@ void EEPROMHandler(int mode, String data) {
 void SerialParser(void) {
 	char readChar[64];
 	Serial.readBytesUntil(33,readChar,64);
-	String read_ = String(readChar);
-	//Serial.println(readChar);
+	String cmddata = String(readChar);
+	
 	for(int i =0 ; i < 64; i++){
 		readChar[i] = 0;
 	}
 
-	int idx1 = read_.indexOf('%');
-	int idx2 = read_.indexOf('$');
-	// separate command from associated data
-	String cmd = read_.substring(1,idx1);
-	String data = read_.substring(idx1+1,idx2);
+	// separate command and data
+	int cmd_idx = cmddata.indexOf('%');
+	int data_idx = cmddata.indexOf('$');
+
+	String cmd = cmddata.substring(1, cmd_idx);
+	String data = cmddata.substring(cmd_idx + 1, data_idx);
   
 	// determine command sent
 	if (cmd == "dw") {
@@ -338,7 +352,7 @@ void SerialParser(void) {
 	}
 	else if (cmd == "dr") {
 		DigitalHandler(0, data);   
-	}  
+	}
 	else if (cmd == "aw") {
 		AnalogHandler(1, data);   
 	}    
@@ -355,28 +369,28 @@ void SerialParser(void) {
 		pulseInHandler(data);   
 	}        
 	else if (cmd == "ss") {
-		SS_set(data);   
+		softwareSerialSet(data);   
 	}
 	else if (cmd == "sw") {
-		SS_write(data);   
+		softwareSerialWrite(data);   
 	}
 	else if (cmd == "sr") {
-		SS_read(data);   
+		softwareSerialRead(data);   
 	}    
 	else if (cmd == "sva") {
-		SV_add(data);   
+		servoAdd(data);   
 	}      
 	else if (cmd == "svr") {
-		SV_read(data);   
+		servoRead(data);   
 	}   
 	else if (cmd == "svw") {
-		SV_write(data);   
+		servoWrite(data);   
 	}    
 	else if (cmd == "svwm") {
-		SV_write_ms(data);   
+		servoWriteMs(data);   
 	}      
 	else if (cmd == "svd") {
-		SV_remove(data);   
+		servoRemove(data);   
 	} 
 	else if (cmd == "version") {
 		Version();   
@@ -404,7 +418,13 @@ void SerialParser(void) {
 	}  
 	else if (cmd == "sz") {  
 		sizeEEPROM();
-	}  
+	}
+	else if (cmd == "rt") {
+		readTemp(data);
+	}
+	else if (cmd == "rh") {
+		readHumidity(data);
+	}
 }
 
 void setup()  {
